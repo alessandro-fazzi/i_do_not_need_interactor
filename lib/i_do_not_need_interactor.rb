@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require_relative "i_do_not_need_interactor/version"
-require "ostruct"
 
 module IDoNotNeedInteractor
   class Error < StandardError; end
@@ -32,13 +31,14 @@ module IDoNotNeedInteractor
 
   def rollback(ctx); end
 
-  class Context < OpenStruct
-    attr_reader :errors, :context, :_executed
+  class Context < Hash
+    attr_reader :errors, :_executed
 
-    def initialize(**)
-      super
+    def initialize(**initial_values)
+      super()
       @errors = []
       @_executed = []
+      initial_values.to_hash.each { |key, value| self[key] = value }
     end
 
     def register(object)
