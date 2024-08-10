@@ -1,3 +1,7 @@
+> [!WARNING]
+> This is a POC built to support a discussion between colleagues.
+> It's born unmaintained by its own nature.
+
 # IDoNotNeedInteractor
 
 I think `interactor` gem could be substituted with 50 lines of ruby and a moderate use of functional patterns.
