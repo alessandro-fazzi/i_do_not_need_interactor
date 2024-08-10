@@ -38,7 +38,7 @@ module IDoNotNeedInteractor # rubocop:disable Style/Documentation
       super()
       @errors = []
       @_executed = []
-      initial_values.to_hash.each { |key, value| self[key] = value }
+      merge! initial_values
     end
 
     def register(object)
