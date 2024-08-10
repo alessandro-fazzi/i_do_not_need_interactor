@@ -2,7 +2,7 @@
 
 require_relative "i_do_not_need_interactor/version"
 
-module IDoNotNeedInteractor
+module IDoNotNeedInteractor # rubocop:disable Style/Documentation
   class Error < StandardError; end
 
   def self.included(descendant)
@@ -31,7 +31,7 @@ module IDoNotNeedInteractor
 
   def rollback(ctx); end
 
-  class Context < Hash
+  class Context < Hash # rubocop:disable Style/Documentation
     attr_reader :errors, :_executed
 
     def initialize(**initial_values)

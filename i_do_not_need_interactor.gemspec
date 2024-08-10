@@ -9,7 +9,8 @@ Gem::Specification.new do |spec|
   spec.email = ["alessandro.fazzi@welaika.com"]
 
   spec.summary = "A POC for really bare interactors w/o using Interactor"
-  spec.description = "I think interactor gem could be substituted with 50 lines of ruby and a moderate use of functional patterns."
+  spec.description = "I think interactor gem could be substituted with 50 lines of ruby and " \
+                     "a moderate use of functional patterns."
   spec.homepage = "https://github.com/alessandro-fazzi/i_do_not_need_interactor"
   spec.license = "MIT"
   spec.required_ruby_version = ">= 3.0.0"
