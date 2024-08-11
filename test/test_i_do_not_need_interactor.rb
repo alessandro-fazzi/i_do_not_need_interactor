@@ -60,6 +60,31 @@ class TestIDoNotNeedInteractor < Minitest::Test
     end
   end
 
+  class InteractorWithActiveModelContract
+    include Interactor
+    include IDoNotNeedInteractor::Contract::ActiveModel
+
+    def call(ctx); end
+
+    contract do
+      attribute :test
+      validates :test, presence: true
+    end
+  end
+
+  class InteractorWithDryValidationContract
+    include Interactor
+    include IDoNotNeedInteractor::Contract::DryValidation
+
+    def call(ctx); end
+
+    contract do
+      params do
+        required(:test)
+      end
+    end
+  end
+
   def test_that_it_has_a_version_number
     refute_nil ::IDoNotNeedInteractor::VERSION
   end
@@ -165,5 +190,17 @@ class TestIDoNotNeedInteractor < Minitest::Test
 
     assert_equal [7, 2, nil], outcome[:before_around]
     assert_equal [7, 2, 9], outcome[:after_around]
+  end
+
+  def test_contract_active_model_integration
+    outcome = InteractorWithActiveModelContract.call
+
+    assert_equal ["Validation failed: Test can't be blank"], outcome.errors
+  end
+
+  def test_contract_dry_validation_integration
+    outcome = InteractorWithDryValidationContract.call
+
+    assert_equal [{ test: ["is missing"] }], outcome.errors
   end
 end
