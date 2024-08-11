@@ -2,89 +2,7 @@
 
 require "test_helper"
 
-class TestIDoNotNeedInteractor < Minitest::Test
-  class InteractorA
-    include Interactor
-
-    def call(ctx)
-      ctx[:a] = "Value A"
-    end
-  end
-
-  class InteractorB
-    include Interactor
-
-    def call(ctx)
-      ctx[:b] = "Value B"
-    end
-  end
-
-  class InteractorSum
-    include Interactor
-
-    def call(ctx)
-      ctx[:result] = ctx.fetch(:a) + ctx.fetch(:b)
-    end
-  end
-
-  class InteractorWithRollback
-    include Interactor
-
-    def call(ctx)
-      ctx[:text] = "nevelE"
-    end
-
-    def rollback(ctx)
-      ctx[:text] = ctx.fetch(:text).reverse
-    end
-  end
-
-  class InteractorWithRollbackAndError
-    include Interactor
-
-    def call(ctx)
-      ctx[:text] = "nevelE"
-      ctx.errors << "An error"
-    end
-
-    def rollback(ctx)
-      ctx[:text] = ctx[:text].reverse
-    end
-  end
-
-  class InteractorWithError
-    include Interactor
-
-    def call(ctx)
-      ctx.errors << "An error"
-    end
-  end
-
-  class InteractorWithActiveModelContract
-    include Interactor
-    include IDoNotNeedInteractor::Contract::ActiveModel
-
-    def call(ctx); end
-
-    contract do
-      attribute :test
-      validates :test, presence: true
-    end
-  end
-
-  class InteractorWithDryValidationContract
-    include Interactor
-    include IDoNotNeedInteractor::Contract::DryValidation
-
-    def call(ctx); end
-
-    contract do
-      params do
-        required(:test)
-      end
-    end
-  end
-
+class TestIDoNotNeedInteractor < Minitest::Test # rubocop:disable Metrics/ClassLength
   def test_that_it_has_a_version_number
     refute_nil ::IDoNotNeedInteractor::VERSION
   end
@@ -109,14 +27,26 @@ class TestIDoNotNeedInteractor < Minitest::Test
     assert_equal 42, outcome[:result]
   end
 
+  def test_when_doing_a_single_interactor_call_kwargs_could_be_used_to_initialize_context
+    outcome = InteractorSum.call(a: 1, b: 41)
+
+    assert_equal 42, outcome[:result]
+  end
+
+  def test_when_using_composition_kwargs_could_be_used_to_initialize_context
+    outcome = (->(ctx) { ctx } >> InteractorSum).call(a: 1, b: 2)
+
+    assert_equal 3, outcome[:result]
+  end
+
   def test_it_is_possible_to_compose_interactors
-    outcome = (InteractorA.pipe >> InteractorB.pipe >> InteractorSum.pipe).call
+    outcome = (InteractorA >> InteractorB >> InteractorSum).call
 
     assert_equal "Value AValue B", outcome[:result]
   end
 
   def test_it_is_possibile_to_compose_interactor_with_sub_compositions
-    outcome = ((InteractorA.pipe >> InteractorB.pipe) >> InteractorSum.pipe).call
+    outcome = ((InteractorA >> InteractorB) >> InteractorSum).call
 
     assert_equal "Value AValue B", outcome[:result]
   end
@@ -126,7 +56,7 @@ class TestIDoNotNeedInteractor < Minitest::Test
       ctx[:a] += 1
       ctx
     end
-    outcome = (before_sum >> InteractorSum.pipe).call(Interactor::Context.new(a: 1, b: 40))
+    outcome = (before_sum >> InteractorSum).call(Interactor::Context.new(a: 1, b: 40))
 
     assert_equal 42, outcome[:result]
   end
@@ -138,7 +68,7 @@ class TestIDoNotNeedInteractor < Minitest::Test
   end
 
   def test_interactor_can_be_rolled_back_when_composed
-    outcome = (InteractorWithRollback.pipe >> InteractorWithError.pipe).call
+    outcome = (InteractorWithRollback >> InteractorWithError).call
 
     assert_equal "Eleven", outcome[:text]
   end
@@ -183,7 +113,7 @@ class TestIDoNotNeedInteractor < Minitest::Test
       end
     end
     outcome = (
-      InteractorA.pipe >>
+      InteractorA >>
       ->(ctx) { ctx[:a] = ctx.fetch(:a).length and ctx } >>
       around.call(InteractorSum)
     ).call(Interactor::Context.new(b: 2))
@@ -202,5 +132,17 @@ class TestIDoNotNeedInteractor < Minitest::Test
     outcome = InteractorWithDryValidationContract.call
 
     assert_equal [{ test: ["is missing"] }], outcome.errors
+  end
+
+  def test_manual_validation
+    outcome = InteractorWithManualValidation.call
+
+    assert_equal ["A validation error"], outcome.errors
+  end
+
+  def test_context_knows_which_interactor_has_failed
+    outcome = (InteractorA >> InteractorWithError).call
+
+    assert_instance_of InteractorWithError, outcome.failed
   end
 end

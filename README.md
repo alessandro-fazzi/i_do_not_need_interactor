@@ -19,10 +19,144 @@ Install the gem and add to the application's Gemfile by executing:
 
 ## Usage
 
-> [!NOTE]
-> I won't write usage instruction for a POC
+Tests should demonstrate usage. Some interesting spotlights follows.
 
-Tests should demonstrate the use of the toy.
+### Validation
+
+> [!TIP]
+> In the `examples/` folder the are some runnable examples of validated interactors.
+
+2 plugins are shipped to validate the Context. You have to manually
+`require` them and add dependencies to your bundle:
+
+```bash
+bundle add activemodel
+
+require "i_do_not_need_interactor/contract/active_model"
+```
+
+or
+
+```bash
+bundle add dry-validation
+
+require "i_do_not_need_interactor/contract/dry_validation"
+```
+
+Here's an example
+
+```ruby
+class InteractorWithActiveModelContract
+  include Interactor
+  include Interactor::Contract::ActiveModel
+
+  def call(ctx); end
+
+  contract do
+    attribute :test
+    validates :test, presence: true
+  end
+end
+```
+
+Inside the `contract` block you have access to `ActiveModel::Attributes` and
+`ActiveModel::Validations` methods and you're also free to overdo: the block is
+evaluated in the context of a class. I advise to keep things simple; `attribute`
+and `validates` should be all you need in order to do basic validation.
+
+`contract` will dynamically create a class, will create the object initializing
+it with the context's key/value pairs as attributes, then it will be validated.
+
+If the context is invalid it's errors messages will be copied into context's
+`errors`, thus making it a failed one.
+
+Using `dry-validation` is more straightforward under the hood, even if the DSL
+takes the interface equivalent:
+
+```ruby
+class InteractorWithDryValidationContract
+  include Interactor
+  include Interactor::Contract::DryValidation
+
+  def call(ctx); end
+
+  contract do
+    params do
+      required(:test)
+    end
+  end
+end
+```
+
+The `contract` block will dynamically create a `Dry::Validation::Contract` class,
+spawn an object from it then will `.call` the object passing in the context.
+`contract`'s block will be evaluated inside the `Dry::Validation::Contract` so
+you should have access to all its goodies.
+
+You can also do manual validation w/o the need to add additional dependencies.
+Interactors are validated if they respond to `#validate` (accepting context as sole
+argument):
+
+```ruby
+class InteractorWithManualValidation
+  include Interactor
+
+  def call(ctx); end
+
+  def validate(ctx)
+    ctx.errors << "A validation error"
+  end
+end
+```
+
+> [!IMPORTANT]
+> Validation is done before interactor execution but only if the received context
+> is `#success?`.
+>
+> If the validation fails the interactor is not executed.
+
+### Composition
+
+While other libraries introduce concepts to "chain" more interactor together, this
+POC relies on Ruby's own functional composition.
+
+```ruby
+(
+  ->(number) { number += 1 } >>
+  ->(number) { number += 1 } >>
+  ->(number) { number += 1 }
+).call(0)
+
+# => 3
+```
+
+Including `Interactor` module will make the descendant respond to `#>>` method like
+a callable object handling the context. Moreover any callable object accepting a sole argument can be added in the composition chain.
+
+> [!IMPORTANT]
+> When using an arbitrary callable object, be sure to always return the context at the
+> end of its execution
+
+```ruby
+log_the_failure = lambda do |ctx|
+  return ctx if ctx.success?
+
+  App.logger.debug("This was the context: #{ctx}. Failed interactor was: #{ctx.failed}")
+
+  ctx
+end
+
+(
+  InteractorA >>
+  InteractorSum >>
+  log_the_failure
+).call(b: 2)
+```
+
+> [!WARNING]
+> As you noticed in the last snippet custom callable objects are responsible to determine
+> if they should or should not execute given current context's state.
+> You're on your own. But it's just ruby.
 
 ## Development
 
