@@ -11,6 +11,7 @@ gemfile true do
 end
 
 require "dry-validation"
+require "i_do_not_need_interactor/contract/dry_validation"
 require "amazing_print"
 
 class DoSomething # rubocop:disable Style/Documentation

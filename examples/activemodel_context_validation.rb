@@ -11,6 +11,7 @@ gemfile true do
 end
 
 require "active_model"
+require "i_do_not_need_interactor/contract/active_model"
 require "amazing_print"
 
 class DoSomething # rubocop:disable Style/Documentation
