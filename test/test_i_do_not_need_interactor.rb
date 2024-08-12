@@ -134,6 +134,12 @@ class TestIDoNotNeedInteractor < Minitest::Test # rubocop:disable Metrics/ClassL
     assert_equal ["Validation failed: Test can't be blank"], outcome.errors
   end
 
+  def test_contract_active_model_integration_with_unknown_attribute
+    outcome = InteractorWithActiveModelContract.call(foo: 1)
+
+    assert_equal ["unknown attribute 'foo' for interactorwithactivemodelcontract::contract."], outcome.errors
+  end
+
   def test_contract_dry_validation_integration
     outcome = InteractorWithDryValidationContract.call
 

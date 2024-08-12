@@ -8,7 +8,9 @@ module IDoNotNeedInteractor
       def self.included(descendant) # rubocop:disable Metrics/MethodLength
         class << descendant
           def contract(&block)
+            caller = self
             @contract = Class.new do
+              set_temporary_name("#{caller.inspect.downcase}::contract")
               include ::ActiveModel::API
               include ::ActiveModel::Attributes
               include ::ActiveModel::Validations
@@ -24,7 +26,7 @@ module IDoNotNeedInteractor
 
       def validate(ctx)
         self.class.instance_variable_get(:@contract).new(**ctx).validate!
-      rescue ::ActiveModel::ValidationError => e
+      rescue ::ActiveModel::ValidationError, ::ActiveModel::UnknownAttributeError => e
         ctx.errors << e.message
       end
     end
