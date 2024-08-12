@@ -8,13 +8,11 @@ module IDoNotNeedInteractor # rubocop:disable Style/Documentation
 
   def self.included(descendant)
     class << descendant
-      def >>(other)
-        method(:call).public_send(:>>, other)
-      end
+      def >>(other) = method(:call).public_send(:>>, other)
 
-      def call(ctx = {})
-        new.maybe_call(ctx)
-      end
+      def <<(other) = method(:call).public_send(:<<, other)
+
+      def call(ctx = {}) = new.maybe_call(ctx)
     end
   end
 
@@ -53,6 +51,8 @@ module IDoNotNeedInteractor # rubocop:disable Style/Documentation
     call(ctx)
     ctx.register(self)
     self.failed = ctx.failure?
+
+    ctx
   end
 
   def trigger_callback(ctx)

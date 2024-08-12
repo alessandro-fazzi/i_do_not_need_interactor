@@ -45,6 +45,12 @@ class TestIDoNotNeedInteractor < Minitest::Test # rubocop:disable Metrics/ClassL
     assert_equal "Value AValue B", outcome[:result]
   end
 
+  def test_it_is_possible_to_compose_interactors_in_reversed_order
+    outcome = (InteractorSum << InteractorB << InteractorA).call
+
+    assert_equal "Value AValue B", outcome[:result]
+  end
+
   def test_it_is_possibile_to_compose_interactor_with_sub_compositions
     outcome = ((InteractorA >> InteractorB) >> InteractorSum).call
 
