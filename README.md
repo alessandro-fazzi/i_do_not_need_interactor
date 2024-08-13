@@ -65,7 +65,9 @@ evaluated in the context of a class. I advise to keep things simple; `attribute`
 and `validates` should be all you need in order to do basic validation.
 
 `contract` will dynamically create a class, will create the object initializing
-it with the context's key/value pairs as attributes, then it will be validated.
+it with the context's key/value pairs also declared as attributes in the contract
+(in composition a single interactor can't be responsible to validate the whole
+context, but just the data it needs), then it will be validated.
 
 If the context is invalid it's errors messages will be copied into context's
 `errors`, thus making it a failed one.
