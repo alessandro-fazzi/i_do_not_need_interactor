@@ -27,10 +27,9 @@ module IDoNotNeedInteractor # rubocop:disable Style/Documentation
 
     return ctx if ctx.failure?
 
-    ctx.register(self)
-    return ctx if run_validation(ctx).failure?
+    run_validation(ctx)
 
-    actually_call(ctx)
+    actually_call(ctx) if ctx.success?
 
     trigger_callback(ctx) if ctx.failure?
 
@@ -51,6 +50,7 @@ module IDoNotNeedInteractor # rubocop:disable Style/Documentation
   end
 
   def actually_call(ctx)
+    ctx.register(self)
     send(callable_method, ctx)
     self.failed = ctx.failure?
 
