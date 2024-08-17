@@ -31,7 +31,7 @@ module IDoNotNeedInteractor # rubocop:disable Style/Documentation
 
     actually_call(ctx) if ctx.success?
 
-    trigger_callback(ctx) if ctx.failure?
+    trigger_rollback(ctx) if ctx.failure?
 
     ctx
   end
@@ -59,7 +59,7 @@ module IDoNotNeedInteractor # rubocop:disable Style/Documentation
 
   def callable_method = :call
 
-  def trigger_callback(ctx) = ctx._executed.reverse_each { _1.rollback(ctx) }
+  def trigger_rollback(ctx) = ctx._executed.reverse_each { _1.rollback(ctx) }
 end
 
 Interactor = IDoNotNeedInteractor unless Module.const_defined?("Interactor")
