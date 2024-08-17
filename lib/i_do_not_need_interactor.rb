@@ -45,6 +45,7 @@ module IDoNotNeedInteractor # rubocop:disable Style/Documentation
     return ctx unless respond_to?(:validate)
 
     validate(ctx)
+    self.failed = ctx.failure?
 
     ctx
   end
