@@ -26,6 +26,8 @@ module IDoNotNeedInteractor # rubocop:disable Style/Documentation
     ctx = Context.new(**ctx) unless ctx.is_a?(Context)
 
     return ctx if ctx.failure?
+
+    ctx.register(self)
     return ctx if run_validation(ctx).failure?
 
     actually_call(ctx)
@@ -49,7 +51,6 @@ module IDoNotNeedInteractor # rubocop:disable Style/Documentation
 
   def actually_call(ctx)
     call(ctx)
-    ctx.register(self)
     self.failed = ctx.failure?
 
     ctx
