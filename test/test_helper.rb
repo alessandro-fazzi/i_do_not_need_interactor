@@ -98,3 +98,11 @@ class InteractorWithManualValidation
     ctx.errors << "A validation error"
   end
 end
+
+class InteractorWithDifferentCallableMethod
+  include Interactor
+
+  def execute(ctx); end
+
+  def callable_method = :execute
+end

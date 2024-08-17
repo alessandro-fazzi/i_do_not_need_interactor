@@ -51,15 +51,15 @@ module IDoNotNeedInteractor # rubocop:disable Style/Documentation
   end
 
   def actually_call(ctx)
-    call(ctx)
+    send(callable_method, ctx)
     self.failed = ctx.failure?
 
     ctx
   end
 
-  def trigger_callback(ctx)
-    ctx._executed.reverse_each { _1.rollback(ctx) }
-  end
+  def callable_method = :call
+
+  def trigger_callback(ctx) = ctx._executed.reverse_each { _1.rollback(ctx) }
 end
 
 Interactor = IDoNotNeedInteractor unless Module.const_defined?("Interactor")

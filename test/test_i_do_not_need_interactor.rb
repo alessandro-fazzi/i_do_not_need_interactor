@@ -139,4 +139,10 @@ class TestIDoNotNeedInteractor < Minitest::Test
 
     assert_instance_of InteractorWithError, outcome.failed
   end
+
+  def test_callable_method_could_be_customized
+    outcome = InteractorWithDifferentCallableMethod.call
+
+    assert_predicate outcome, :success?
+  end
 end
