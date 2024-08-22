@@ -2,17 +2,17 @@
 
 require "test_helper"
 
-class TestIDoNotNeedInteractor < Minitest::Test # rubocop:disable Metrics/ClassLength
+class TestInteractor < Minitest::Test # rubocop:disable Metrics/ClassLength
   def test_that_it_has_a_version_number
-    refute_nil ::IDoNotNeedInteractor::VERSION
+    refute_nil ::Shy::Interactor::VERSION
   end
 
   def test_main_module_is_aliased_as_interactor
-    assert Module.const_defined? "Interactor"
+    assert Module.const_defined? "Shy::Interactor"
   end
 
   def test_an_interactor_returns_a_result
-    assert_kind_of Interactor::Context, InteractorA.call
+    assert_kind_of Shy::Interactor::Context, InteractorA.call
   end
 
   def test_context_is_mutated_by_the_interactor
@@ -22,7 +22,7 @@ class TestIDoNotNeedInteractor < Minitest::Test # rubocop:disable Metrics/ClassL
   end
 
   def test_it_is_possible_to_call_it_with_an_existent_context
-    outcome = InteractorSum.call(Interactor::Context.new(a: 1, b: 41))
+    outcome = InteractorSum.call(Shy::Interactor::Context.new(a: 1, b: 41))
 
     assert_equal 42, outcome[:result]
   end
@@ -62,7 +62,7 @@ class TestIDoNotNeedInteractor < Minitest::Test # rubocop:disable Metrics/ClassL
       ctx[:a] += 1
       ctx
     end
-    outcome = (before_sum >> InteractorSum).call(Interactor::Context.new(a: 1, b: 40))
+    outcome = (before_sum >> InteractorSum).call(Shy::Interactor::Context.new(a: 1, b: 40))
 
     assert_equal 42, outcome[:result]
   end
@@ -102,7 +102,7 @@ class TestIDoNotNeedInteractor < Minitest::Test # rubocop:disable Metrics/ClassL
         ctx
       end
     end
-    outcome = around.call(InteractorSum).call(Interactor::Context.new(a: 1, b: 2))
+    outcome = around.call(InteractorSum).call(Shy::Interactor::Context.new(a: 1, b: 2))
 
     assert_equal [1, 2, nil], outcome[:before_around]
     assert_equal [1, 2, 3], outcome[:after_around]
@@ -122,7 +122,7 @@ class TestIDoNotNeedInteractor < Minitest::Test # rubocop:disable Metrics/ClassL
       InteractorA >>
       ->(ctx) { ctx[:a] = ctx.fetch(:a).length and ctx } >>
       around.call(InteractorSum)
-    ).call(Interactor::Context.new(b: 2))
+    ).call(Shy::Interactor::Context.new(b: 2))
 
     assert_equal [7, 2, nil], outcome[:before_around]
     assert_equal [7, 2, 9], outcome[:after_around]

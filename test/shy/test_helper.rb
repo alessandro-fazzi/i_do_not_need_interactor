@@ -1,14 +1,14 @@
 # frozen_string_literal: true
 
 $LOAD_PATH.unshift File.expand_path("../lib", __dir__)
-require "i_do_not_need_interactor"
-require "i_do_not_need_interactor/contract/active_model"
-require "i_do_not_need_interactor/contract/dry_validation"
+require "shy/interactor"
+require "shy/interactor/contract/active_model"
+require "shy/interactor/contract/dry_validation"
 
 require "minitest/autorun"
 
 class InteractorA
-  include Interactor
+  include Shy::Interactor
 
   def call(ctx)
     ctx[:a] = "Value A"
@@ -16,7 +16,7 @@ class InteractorA
 end
 
 class InteractorB
-  include Interactor
+  include Shy::Interactor
 
   def call(ctx)
     ctx[:b] = "Value B"
@@ -24,7 +24,7 @@ class InteractorB
 end
 
 class InteractorSum
-  include Interactor
+  include Shy::Interactor
 
   def call(ctx)
     ctx[:result] = ctx.fetch(:a) + ctx.fetch(:b)
@@ -32,7 +32,7 @@ class InteractorSum
 end
 
 class InteractorWithRollback
-  include Interactor
+  include Shy::Interactor
 
   def call(ctx)
     ctx[:text] = "nevelE"
@@ -44,7 +44,7 @@ class InteractorWithRollback
 end
 
 class InteractorWithRollbackAndError
-  include Interactor
+  include Shy::Interactor
 
   def call(ctx)
     ctx[:text] = "nevelE"
@@ -57,7 +57,7 @@ class InteractorWithRollbackAndError
 end
 
 class InteractorWithError
-  include Interactor
+  include Shy::Interactor
 
   def call(ctx)
     ctx.errors << "An error"
@@ -65,8 +65,8 @@ class InteractorWithError
 end
 
 class InteractorWithActiveModelContract
-  include Interactor
-  include Interactor::Contract::ActiveModel
+  include Shy::Interactor
+  include Shy::Interactor::Contract::ActiveModel
 
   def call(ctx); end
 
@@ -77,8 +77,8 @@ class InteractorWithActiveModelContract
 end
 
 class InteractorWithDryValidationContract
-  include Interactor
-  include Interactor::Contract::DryValidation
+  include Shy::Interactor
+  include Shy::Interactor::Contract::DryValidation
 
   def call(ctx); end
 
@@ -90,7 +90,7 @@ class InteractorWithDryValidationContract
 end
 
 class InteractorWithManualValidation
-  include Interactor
+  include Shy::Interactor
 
   def call(ctx); end
 
@@ -100,7 +100,7 @@ class InteractorWithManualValidation
 end
 
 class InteractorWithDifferentCallableMethod
-  include Interactor
+  include Shy::Interactor
 
   def execute(ctx); end
 

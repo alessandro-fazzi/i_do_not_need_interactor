@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    i_do_not_need_interactor (0.1.42)
+    shy-interactor (0.1.42)
 
 GEM
   remote: https://rubygems.org/
@@ -102,10 +102,10 @@ PLATFORMS
 DEPENDENCIES
   activemodel (~> 7.2)
   dry-validation (~> 1.10)
-  i_do_not_need_interactor!
   minitest (~> 5.16)
   rake (~> 13.0)
   rubocop (~> 1.21)
+  shy-interactor!
 
 BUNDLED WITH
    2.5.17

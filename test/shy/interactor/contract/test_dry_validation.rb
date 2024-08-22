@@ -6,6 +6,7 @@ class TestDryValidationContract < Minitest::Test
   include ::TestContractBehavior
 
   def setup
+    super
     @subject = InteractorWithDryValidationContract
     @subject_expected_error_message = { test: ["is missing"] }
   end
