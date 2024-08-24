@@ -2,19 +2,20 @@
 
 require "shy/interactor/version"
 require "shy/interactor/context"
+require "shy/interactor/logger"
+require "shy/interactor/config"
 
 module Shy
   module Interactor # rubocop:disable Style/Documentation
     class Error < StandardError; end
-    @config = {}
 
     class << self
-      attr_reader :config
+      attr_accessor :config
 
-      def configure
-        yield config
-      end
+      def configure(...) = config.configure(...)
     end
+
+    @config = Config.build_with_defaults
 
     def self.included(descendant)
       class << descendant
@@ -60,6 +61,8 @@ module Shy
     end
 
     def actually_call(ctx)
+      logger.debug [ctx, "Executed #{self.class}"]
+
       ctx.register(self)
       send(callable_method, ctx)
       self.failed = ctx.failure?
@@ -70,5 +73,9 @@ module Shy
     def callable_method = :call
 
     def trigger_rollback(ctx) = ctx._executed.reverse_each { _1.rollback(ctx) }
+
+    def logger
+      Shy::Interactor.config.logger
+    end
   end
 end

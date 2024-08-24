@@ -7,6 +7,90 @@ require "shy/interactor/contract/dry_validation"
 
 require "minitest/autorun"
 
+Shy::Interactor.config = Shy::Interactor::Config.build_for_test
+
+module TestConfigHelper
+  def setup
+    super
+    Shy::Interactor.config = Shy::Interactor::Config.build_for_test
+  end
+
+  def teardown
+    Shy::Interactor.config = Shy::Interactor::Config.build_for_test
+    super
+  end
+end
+
+module TestLoggingHelper
+  include TestConfigHelper # this module will be responsible for a pristine config in teardown
+
+  EXPECTED_FIXED_TIME = Time.at(0).utc.to_s
+
+  def teardown
+    @log = nil
+    super
+  end
+
+  private
+
+  def stub_logger(&block)
+    log_device_double = StringIO.new
+    Shy::Interactor.config = Shy::Interactor::Config.build_for_test(log_device_double)
+
+    Time.stub :now, Time.at(0).utc do
+      block.call
+    end
+
+    log_device_double.close_write
+    log_device_double.rewind
+    @log = lines = log_device_double.readlines
+    log_device_double.close
+    lines
+  end
+
+  def assert_log_matches(message:, context: nil, times: nil) # rubocop:disable Metrics/MethodLength,Metrics/CyclomaticComplexity,Metrics/PerceivedComplexity
+    count = @log.count do |log_line|
+      message_matched = case message
+                        when String then log_line.match?("message=\"#{message}\"")
+                        when Regexp then log_line.match?(message)
+                        else false
+                        end
+      context_matched = case context
+                        when String, Regexp then log_line.match?(context)
+                        when Hash then log_line.match?(context.to_s)
+                        else false
+                        end
+
+      next message_matched && context_matched if context
+
+      message_matched
+    end
+
+    custom_error_message = lambda do
+      message = if context
+                  "Expected \"#{message}\" with context \"#{context}\" to appear #{times} times in log messages, " \
+                    "but count was #{count}"
+                else
+                  "Expected \"#{message}\" to appear #{times} times in log messages, but count was #{count}"
+                end
+      message = <<~MESSAGE
+        "#{message}. Log content:
+
+
+        #{@log.join}
+
+      MESSAGE
+    end
+
+    if times
+      assert_equal(times, count, custom_error_message)
+      return
+    end
+
+    assert_operator count, :>, 0
+  end
+end
+
 class InteractorA
   include Shy::Interactor
 
