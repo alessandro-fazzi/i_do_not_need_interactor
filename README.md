@@ -2,7 +2,7 @@
 > This is a POC built to support a discussion between colleagues.
 > It's born unmaintained by its own nature.
 
-# IDoNotNeedInteractor
+# Shy::Interactor
 
 I think `interactor` gem could be substituted with 50 lines of ruby and a moderate use of functional patterns.
 
@@ -15,7 +15,7 @@ Long live Interactor.
 
 Install the gem and add to the application's Gemfile by executing:
 
-    $ bundle add i_do_not_need_interactor --github "alessandro-fazzi/i_do_not_need_interactor"
+    $ bundle add shy-interactor --github "alessandro-fazzi/shy-interactor"
 
 ## Usage
 
@@ -32,7 +32,7 @@ Tests should demonstrate usage. Some interesting spotlights follows.
 ```bash
 bundle add activemodel
 
-require "i_do_not_need_interactor/contract/active_model"
+require "shy-interactor/contract/active_model"
 ```
 
 or
@@ -40,15 +40,15 @@ or
 ```bash
 bundle add dry-validation
 
-require "i_do_not_need_interactor/contract/dry_validation"
+require "shy-interactor/contract/dry_validation"
 ```
 
 Here's an example
 
 ```ruby
 class InteractorWithActiveModelContract
-  include Interactor
-  include Interactor::Contract::ActiveModel
+  include Shy::Interactor
+  include Shy::Interactor::Contract::ActiveModel
 
   def call(ctx); end
 
@@ -77,8 +77,8 @@ takes the interface equivalent:
 
 ```ruby
 class InteractorWithDryValidationContract
-  include Interactor
-  include Interactor::Contract::DryValidation
+  include Shy::Interactor
+  include Shy::Interactor::Contract::DryValidation
 
   def call(ctx); end
 
@@ -101,7 +101,7 @@ argument):
 
 ```ruby
 class InteractorWithManualValidation
-  include Interactor
+  include Shy::Interactor
 
   def call(ctx); end
 
@@ -119,7 +119,7 @@ end
 
 ### Composition
 
-While other libraries introduce concepts to "chain" more interactor together, this
+While other libraries introduce concepts to "chain" more interactors together, this
 POC relies on Ruby's own functional composition.
 
 ```ruby
@@ -132,8 +132,9 @@ POC relies on Ruby's own functional composition.
 # => 3
 ```
 
-Including `Interactor` module will make the descendant respond to `#>>` method like
-a callable object handling the context. Moreover any callable object accepting a sole argument can be added in the composition chain.
+Including `Shy::Interactor` module will make the descendant respond to `#>>` method (on class)
+like a callable object handling the _context_. Moreover any callable object accepting a sole
+argument (the _context_) can be added in the composition chain.
 
 > [!IMPORTANT]
 > When using an arbitrary callable object, be sure to always return the context at the
@@ -157,7 +158,7 @@ end
 
 > [!WARNING]
 > As you noticed in the last snippet custom callable objects are responsible to determine
-> if they should or should not execute given current context's state.
+> if they should or should not execute given current _context_'s state.
 > You're on your own. But it's just ruby.
 
 ## Development
@@ -168,7 +169,7 @@ To install this gem onto your local machine, run `bundle exec rake install`. To 
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/alessandro-fazzi/i_do_not_need_interactor. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [code of conduct](https://github.com/alessandro-fazzi/i_do_not_need_interactor/blob/main/CODE_OF_CONDUCT.md).
+Bug reports and pull requests are welcome on GitHub at https://github.com/alessandro-fazzi/shy-interactor. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [code of conduct](https://github.com/alessandro-fazzi/shy-interactor/blob/main/CODE_OF_CONDUCT.md).
 
 ## License
 
@@ -176,4 +177,4 @@ The gem is available as open source under the terms of the [MIT License](https:/
 
 ## Code of Conduct
 
-Everyone interacting in the IDoNotNeedInteractor project's codebases, issue trackers, chat rooms and mailing lists is expected to follow the [code of conduct](https://github.com/alessandro-fazzi/i_do_not_need_interactor/blob/main/CODE_OF_CONDUCT.md).
+Everyone interacting in the Shy::Interactor project's codebases, issue trackers, chat rooms and mailing lists is expected to follow the [code of conduct](https://github.com/alessandro-fazzi/shy-interactor/blob/main/CODE_OF_CONDUCT.md).
