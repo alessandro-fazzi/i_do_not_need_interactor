@@ -14,3 +14,6 @@ gem "rubocop", "~> 1.21"
 gem "activemodel", "~> 7.2"
 
 gem "dry-validation", "~> 1.10"
+
+gem "rubocop-minitest", "~> 0.35.1"
+gem "rubocop-rake", "~> 0.6.0"
