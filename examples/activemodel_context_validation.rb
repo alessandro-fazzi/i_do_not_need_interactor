@@ -6,17 +6,17 @@ gemfile true do
   source "https://rubygems.org"
 
   gem "activemodel"
-  gem "i_do_not_need_interactor", github: "alessandro-fazzi/i_do_not_need_interactor"
+  gem "shy-interactor", github: "alessandro-fazzi/shy-interactor"
   gem "amazing_print"
 end
 
 require "active_model"
-require "i_do_not_need_interactor/contract/active_model"
+require "shy/interactor/contract/active_model"
 require "amazing_print"
 
 class DoSomething # rubocop:disable Style/Documentation
-  include Interactor
-  include Interactor::Contract::ActiveModel
+  include Shy::Interactor
+  include Shy::Interactor::Contract::ActiveModel
 
   def call(ctx)
     ctx[:done] = true

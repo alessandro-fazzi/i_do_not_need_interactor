@@ -6,17 +6,17 @@ gemfile true do
   source "https://rubygems.org"
 
   gem "dry-validation"
-  gem "i_do_not_need_interactor", github: "alessandro-fazzi/i_do_not_need_interactor"
+  gem "shy-interactor", github: "alessandro-fazzi/shy-interactor"
   gem "amazing_print"
 end
 
 require "dry-validation"
-require "i_do_not_need_interactor/contract/dry_validation"
+require "shy/interactor/contract/dry_validation"
 require "amazing_print"
 
 class DoSomething # rubocop:disable Style/Documentation
-  include Interactor
-  include Interactor::Contract::DryValidation
+  include Shy::Interactor
+  include Shy::Interactor::Contract::DryValidation
 
   def call(ctx)
     ctx[:done] = true
