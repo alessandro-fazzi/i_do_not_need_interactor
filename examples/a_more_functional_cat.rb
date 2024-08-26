@@ -8,15 +8,19 @@ gemfile true do
   gem "shy-interactor", github: "alessandro-fazzi/shy-interactor"
 end
 
+module Heterotroph # rubocop:disable Style/Documentation
+  def hungry? = eaten.size < 2
+
+  def sated? = eaten.size >= 2
+end
+
 class Cat # rubocop:disable Style/Documentation
-  module Heterotroph # rubocop:disable Style/Documentation
-    def hungry? = eaten.size < 2
-
-    def sated? = eaten.size >= 2
-  end
-
   def self.LetItLive(food:) # rubocop:disable Naming/MethodName
-    context = Shy::Interactor::Context.Struct(food:, eaten: [], walked: false) do
+    context = Shy::Interactor::Context.Struct(
+      food:,
+      eaten: [],
+      walked: false
+    ) do
       extend Heterotroph
     end
 
@@ -42,7 +46,7 @@ class Cat # rubocop:disable Style/Documentation
     include Shy::Interactor
 
     def call(ctx)
-      return ctx unless ctx.hungry?
+      return ctx if ctx.sated?
 
       ctx[:eaten] << ctx[:food]
     end
@@ -52,8 +56,6 @@ class Cat # rubocop:disable Style/Documentation
     include Shy::Interactor
 
     def call(ctx)
-      return ctx unless ctx.sated?
-
       ctx[:eaten].replace []
       p "Meow"
     end
