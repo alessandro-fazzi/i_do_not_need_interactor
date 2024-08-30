@@ -3,16 +3,16 @@
 require "test_helper"
 
 class TestInteractor < Minitest::Test # rubocop:disable Metrics/ClassLength
+  def test_main_module_is_defined
+    assert Module.const_defined? "Shy::Interactor"
+  end
+
   def test_that_it_has_a_version_number
     refute_nil ::Shy::Interactor::VERSION
   end
 
-  def test_main_module_is_aliased_as_interactor
-    assert Module.const_defined? "Shy::Interactor"
-  end
-
   def test_an_interactor_returns_a_result
-    assert_kind_of Shy::Interactor::Context, InteractorA.call
+    assert_kind_of Shy::Interactor::Context::Hash, InteractorA.call
   end
 
   def test_context_is_mutated_by_the_interactor
@@ -22,9 +22,25 @@ class TestInteractor < Minitest::Test # rubocop:disable Metrics/ClassLength
   end
 
   def test_it_is_possible_to_call_it_with_an_existent_context
-    outcome = InteractorSum.call(Shy::Interactor::Context.new(a: 1, b: 41))
+    outcome = InteractorSum.call(Shy::Interactor::Context.Hash(a: 1, b: 41))
 
     assert_equal 42, outcome[:result]
+  end
+
+  def test_it_is_possible_to_use_a_struct_as_context
+    outcome = InteractorSumStructContext.call(
+      Shy::Interactor::Context.Struct(a: 1, b: 41, result: nil)
+    )
+
+    assert_equal 42, outcome.result
+  end
+
+  def test_when_using_struct_context_you_must_declare_all_members_in_advance
+    error = assert_raises NoMethodError do
+      InteractorSumStructContext.call(Shy::Interactor::Context.Struct(a: 1, b: 41))
+    end
+
+    assert_match(/undefined method `result='/, error.message)
   end
 
   def test_when_doing_a_single_interactor_call_kwargs_could_be_used_to_initialize_context
@@ -62,7 +78,7 @@ class TestInteractor < Minitest::Test # rubocop:disable Metrics/ClassLength
       ctx[:a] += 1
       ctx
     end
-    outcome = (before_sum >> InteractorSum).call(Shy::Interactor::Context.new(a: 1, b: 40))
+    outcome = (before_sum >> InteractorSum).call(Shy::Interactor::Context.Hash(a: 1, b: 40))
 
     assert_equal 42, outcome[:result]
   end
@@ -102,7 +118,7 @@ class TestInteractor < Minitest::Test # rubocop:disable Metrics/ClassLength
         ctx
       end
     end
-    outcome = around.call(InteractorSum).call(Shy::Interactor::Context.new(a: 1, b: 2))
+    outcome = around.call(InteractorSum).call(Shy::Interactor::Context.Hash(a: 1, b: 2))
 
     assert_equal [1, 2, nil], outcome[:before_around]
     assert_equal [1, 2, 3], outcome[:after_around]
@@ -122,7 +138,7 @@ class TestInteractor < Minitest::Test # rubocop:disable Metrics/ClassLength
       InteractorA >>
       ->(ctx) { ctx[:a] = ctx.fetch(:a).length and ctx } >>
       around.call(InteractorSum)
-    ).call(Shy::Interactor::Context.new(b: 2))
+    ).call(Shy::Interactor::Context.Hash(b: 2))
 
     assert_equal [7, 2, nil], outcome[:before_around]
     assert_equal [7, 2, 9], outcome[:after_around]

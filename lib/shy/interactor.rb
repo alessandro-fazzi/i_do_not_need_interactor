@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "shy/interactor/version"
+require "shy/interactor/hash_refinements"
 require "shy/interactor/context"
 require "shy/interactor/logger"
 require "shy/interactor/config"
@@ -33,8 +34,8 @@ module Shy
       @failed = false
     end
 
-    def maybe_call(ctx = Context.new)
-      ctx = Context.new(**ctx) unless ctx.is_a?(Context)
+    def maybe_call(ctx = Context.Build)
+      ctx = Context.Hash(**ctx) unless ctx.is_a?(ActsAsContext)
 
       return ctx if ctx.failure?
 

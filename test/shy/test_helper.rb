@@ -115,6 +115,14 @@ class InteractorSum
   end
 end
 
+class InteractorSumStructContext
+  include Shy::Interactor
+
+  def call(ctx)
+    ctx.result = ctx.a + ctx.b
+  end
+end
+
 class InteractorWithRollback
   include Shy::Interactor
 
