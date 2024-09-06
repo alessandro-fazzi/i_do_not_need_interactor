@@ -99,6 +99,14 @@ class InteractorA
   end
 end
 
+class RailwayInteractorA
+  include Shy::Interactor::Railway
+
+  def call(_result)
+    "Value A"
+  end
+end
+
 class InteractorB
   include Shy::Interactor
 
@@ -115,11 +123,36 @@ class InteractorSum
   end
 end
 
+class RailwayInteractorSum
+  include Shy::Interactor::Railway
+
+  def call(result)
+    result.fetch(:a) + result.fetch(:b)
+  end
+end
+
+class RailwayInteractorSumExpectingArray
+  include Shy::Interactor::Railway
+
+  def call(result)
+    a, b = result
+    a + b
+  end
+end
+
 class InteractorSumStructContext
   include Shy::Interactor
 
   def call(ctx)
     ctx.result = ctx.a + ctx.b
+  end
+end
+
+class RailwayInteractorSumStructContext
+  include Shy::Interactor::Railway
+
+  def call(result)
+    result.a + result.b
   end
 end
 
@@ -156,29 +189,59 @@ class InteractorWithError
   end
 end
 
+class RailwayInteractorWithError
+  include Shy::Interactor::Railway
+
+  def call(_result)
+    Failure("An error")
+  end
+end
+
 class InteractorWithActiveModelContract
   include Shy::Interactor
   include Shy::Interactor::Contract::ActiveModel
-
-  def call(ctx); end
 
   contract do
     attribute :test
     validates :test, presence: true
   end
+
+  def call(ctx); end
 end
 
 class InteractorWithDryValidationContract
   include Shy::Interactor
   include Shy::Interactor::Contract::DryValidation
 
-  def call(ctx); end
-
   contract do
     params do
       required(:test)
     end
   end
+
+  def call(ctx); end
+end
+
+class RailwayInteractorWithDryValidationContract
+  include Shy::Interactor::Railway
+  include Shy::Interactor::Contract::DryValidation
+
+  contract do
+    params do
+      required(:test).value(:string)
+    end
+  end
+
+  def call(ctx); end
+end
+
+class RailwayInteractorWithDryValidationType
+  include Shy::Interactor::Railway
+  include Shy::Interactor::Contract::DryValidation
+
+  validate ->(result) { Types::Strict::String[result] }
+
+  def call(result); end
 end
 
 class InteractorWithManualValidation
