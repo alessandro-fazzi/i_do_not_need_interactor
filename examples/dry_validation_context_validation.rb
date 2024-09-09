@@ -10,7 +10,6 @@ gemfile true do
   gem "amazing_print"
 end
 
-require "dry-validation"
 require "shy/interactor/contract/dry_validation"
 require "amazing_print"
 
@@ -23,7 +22,7 @@ class DoSomething # rubocop:disable Style/Documentation
   end
 
   contract do
-    params do
+    schema do
       optional(:done).value(:bool)
       required(:foo).value(:string)
     end
