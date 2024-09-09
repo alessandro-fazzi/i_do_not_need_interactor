@@ -20,10 +20,10 @@ module Shy
                   ::ActiveModel::Name.new(self, nil, "temp")
                 end
 
-                def self.build_for_interactor_validation(ctx)
+                def self.build_for_interactor_validation(hash_or_struct_ctx)
                   contract = new
                   declared_attributes = contract.attribute_names.each(&:to_sym)
-                  context_attributes_to_validate = ctx.slice(declared_attributes)
+                  context_attributes_to_validate = hash_or_struct_ctx.to_h.slice(declared_attributes)
                   contract.assign_attributes(context_attributes_to_validate)
                   contract
                 end

@@ -18,6 +18,13 @@ module TestContractBehavior
     assert_equal [@subject_expected_error_message], outcome.errors
   end
 
+  def test_validation_works_when_context_is_a_struct
+    context = Shy::Interactor::Context.Struct(undeclared: 9)
+    outcome = @subject.call(context)
+
+    assert_equal [@subject_expected_error_message], outcome.errors
+  end
+
   def test_validation_in_composition
     outcome = (InteractorA >> @subject).call
 

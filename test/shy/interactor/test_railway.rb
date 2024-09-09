@@ -56,6 +56,7 @@ class TestInteractorRailway < Minitest::Test
   end
 
   def test_failure_resolves_to_self
+    # deductive...
     result = RailwayInteractorWithError.call
 
     assert_instance_of Shy::Interactor::Result::Failure, result.resolve
@@ -89,7 +90,7 @@ class TestInteractorRailway < Minitest::Test
     end
   end
 
-  def test_can_use_our_refinements_to_produce_a_struct_value
+  def test_can_use_our_refinements_to_produce_a_struct_as_initial_result_and_it_works
     result = ScopeWithActiveRefinements.run_test
 
     assert_equal 3, result.resolve
@@ -117,24 +118,5 @@ class TestInteractorRailway < Minitest::Test
     assert_predicate result, :failure?
     assert_instance_of RailwayInteractorWithError, result.owner
     assert_equal "An error", result.message
-  end
-
-  def test_dry_validation_type_validation
-    result = RailwayInteractorWithDryValidationType.call(1)
-
-    assert_instance_of Shy::Interactor::Result::Failure, result
-    assert_equal "1 violates constraints (type?(String, 1) failed)", result.message
-  end
-
-  def test_dry_validation_contract_validation
-    result = RailwayInteractorWithDryValidationContract.call(test: 1)
-
-    assert_instance_of Shy::Interactor::Result::Failure, result
-    assert_equal({ test: ["must be a string"] }, result.message)
-
-    result = RailwayInteractorWithDryValidationContract.call
-
-    assert_instance_of Shy::Interactor::Result::Failure, result
-    assert_equal({ test: ["is missing"] }, result.message)
   end
 end

@@ -40,10 +40,15 @@ module Shy
         end
 
         def validate_railway_interactor(result)
-          if result.is_a?(Hash) && self.class.instance_variable_defined?(:@contract)
-            validate_railway_interactor_with_contract(result)
+          if result.respond_to?(:to_h) && self.class.instance_variable_defined?(:@contract)
+            validate_railway_interactor_with_contract(result.to_h)
           elsif self.class.instance_variable_defined?(:@type_validation_proc)
             validate_railway_interactor_with_type(result)
+          else
+            raise Error, <<~ERROR
+              Interactor #{self.class} requires validation, but you have not
+              defined neither `contract` or `validate` methods on the class.
+            ERROR
           end
         end
 
