@@ -239,11 +239,11 @@ POC relies on Ruby's own functional composition.
 ```
 
 Including `Shy::Interactor` module will make the descendant respond to `.>>` method
-like a proc object handling the _context_. Moreover any proc object
+like a Proc object handling the _context_. Moreover any Proc (or Method) object
 accepting a sole argument (the _context_) can be added in the composition chain.
 
 > [!IMPORTANT]
-> When using an arbitrary callable object, be sure to always return the context at the
+> When using an arbitrary Proc, be sure to always return the context at the
 > end of its execution
 
 ```ruby
@@ -263,7 +263,7 @@ end
 ```
 
 > [!WARNING]
-> As you noticed in the last snippet custom callable objects are responsible to determine
+> As you noticed in the last snippet custom proc objects are responsible to determine
 > if they should or should not execute given current _context_'s state.
 > You're on your own. But it's just ruby.
 
