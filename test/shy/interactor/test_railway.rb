@@ -119,4 +119,8 @@ class TestInteractorRailway < Minitest::Test
     assert_instance_of RailwayInteractorWithError, result.owner
     assert_equal "An error", result.message
   end
+
+  def test_railway_interactor_does_not_support_rollback
+    refute_respond_to RailwayInteractorSum.new, :rollback
+  end
 end
