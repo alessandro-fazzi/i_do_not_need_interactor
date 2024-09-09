@@ -4,7 +4,7 @@
 
 # Shy::Interactor
 
-Refer to the [narration/README.md](narration document) for the long,
+Refer to the [narration document](narration/README.md) for the long,
 follow-through discussion.
 
 ## Installation
