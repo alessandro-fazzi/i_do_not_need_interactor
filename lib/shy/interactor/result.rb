@@ -13,9 +13,9 @@ module Shy
         @owner = owner
       end
 
-      def success? = is_a?(Success)
+      def success? = raise NotImplementedError
 
-      def failure? = is_a?(Failure)
+      def failure? = !success?
 
       def resolve = raise NotImplementedError
 
@@ -24,16 +24,14 @@ module Shy
       # end
 
       class Success < self # rubocop:disable Style/Documentation
-        using Shy::Interactor::HashRefinements
-
-        attr_reader :value
-
         def initialize(value, owner: nil)
           super(owner:)
           @value = value
         end
 
-        def resolve = value
+        def resolve = @value
+
+        def success? = true
       end
 
       class Failure < self # rubocop:disable Style/Documentation
@@ -45,6 +43,8 @@ module Shy
         end
 
         def resolve = self
+
+        def success? = false
       end
     end
   end
