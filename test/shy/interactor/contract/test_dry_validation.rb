@@ -42,4 +42,11 @@ class TestDryValidationContract < Minitest::Test
     assert_instance_of Shy::Interactor::Result::Failure, result
     assert_equal({ test: ["is missing"] }, result.message)
   end
+
+  def test_railway_validation_adds_owner_to_failure_monad_when_it_fails
+    result = RailwayInteractorWithDryValidationType.call(1)
+
+    assert_instance_of Shy::Interactor::Result::Failure, result
+    assert_instance_of RailwayInteractorWithDryValidationType, result.owner
+  end
 end

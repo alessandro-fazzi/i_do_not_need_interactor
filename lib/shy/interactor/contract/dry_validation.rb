@@ -54,13 +54,13 @@ module Shy
 
         def validate_railway_interactor_with_contract(result)
           validation_result = self.class.instance_variable_get(:@contract).new.call(result)
-          Failure(validation_result.errors.to_h) if validation_result.errors.any?
+          Failure(validation_result.errors.to_h, owner: self) if validation_result.errors.any?
         end
 
         def validate_railway_interactor_with_type(result)
           self.class.instance_variable_get(:@type_validation_proc).call(result)
         rescue Dry::Types::ConstraintError => e
-          Failure(e.message)
+          Failure(e.message, owner: self)
         end
       end
     end
