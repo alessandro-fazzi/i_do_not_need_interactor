@@ -40,7 +40,10 @@ them together.
   - basic Result::Success/Result::Failure monads
   - owner tracking in Result (useful for knowing which interactor has failed
     in a pipeline)
-  -
+
+The gem has different modules implementing aforementioned solutions/features.
+This is a gem to study and discuss, thus it's not trying to sell a specific
+way to do things; it serves as a playground.
 
 ## Usage
 
