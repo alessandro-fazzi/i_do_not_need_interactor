@@ -3,6 +3,24 @@
 > If you're looking for a TOC, GitHub generates it for you: should find it
 > clicking some icons on the right side of this readme
 
+# What's up?
+
+All started with a question: is *Interactor* worth to have as a dependency in
+a project?
+
+I'll try to chat about:
+
+- what is an interactor?
+- is an interactor better than a PORO?
+- does an interactor materialize business logic?
+- is an interactor OO? Is it functional?
+- what *Interactor* lacks? Could we enrich it?
+
+The gem in this repo will serve as practical demonstrator of the subjects.
+We'll use it to add some additional bricks to a basic interactor and to test
+a conceptually different approach. And we'll see how hard could be to implement
+a custom - rough and basic - solution by having the source code at hand.
+
 # What is an interactor?
 
 > [!NOTE]
