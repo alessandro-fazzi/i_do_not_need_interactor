@@ -254,6 +254,16 @@ class InteractorWithManualValidation
   end
 end
 
+class RailwayInteractorWithManualValidation
+  include Shy::Interactor::Railway
+
+  def call(result); end
+
+  def validate(_result)
+    Failure("A validation error")
+  end
+end
+
 class InteractorWithDifferentCallableMethod
   include Shy::Interactor
 

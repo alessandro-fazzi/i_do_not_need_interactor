@@ -123,4 +123,10 @@ class TestInteractorRailway < Minitest::Test
   def test_railway_interactor_does_not_support_rollback
     refute_respond_to RailwayInteractorSum.new, :rollback
   end
+
+  def test_manual_validation
+    result = RailwayInteractorWithManualValidation.call
+
+    assert_equal "A validation error", result.message
+  end
 end
