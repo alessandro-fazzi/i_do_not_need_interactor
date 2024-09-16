@@ -8,6 +8,9 @@
 All started with a question: is *Interactor* worth to have as a dependency in
 a project?
 
+I see it in a bunch or projects, but I've never a fully positive answer to my
+own question.
+
 I'll try to chat about:
 
 - what is an interactor?
@@ -43,10 +46,9 @@ A quote from https://github.com/collectiveidea/interactor#what-is-an-interactor
 
 > An interactor is a simple, single-purpose object.
 >
-> Interactors are used to encapsulate your application's [business logic](http://en.wikipedia.org/wiki/Business_logic).
+> Interactors are used to encapsulate your application's
+> [business logic](http://en.wikipedia.org/wiki/Business_logic).
 > Each interactor represents one thing that your application *does*.
-
-I have a lot of opinions and notes about such an assertion.
 
 Given this description:
 
@@ -66,8 +68,6 @@ If that's enough for you: well done. You don't need a gem, a library, a pattern.
 You're writing in an object oriented language and all you need is an object.
 Lucky you!
 
-## «Everything the application does»
-
 >  a glance at that directory [app/interactors, *ndr*] gives any developer a
 > quick understanding of everything the application *does*.
 
@@ -75,49 +75,80 @@ That's not understanding.
 
 *Walk*, *eat*, *poop* doesn't make you understand it's a cat.
 
-Who «does»? When does it «do»? Why it «do» that thing? In which **order**?
+Who «does»? When does it «do»? Why it «does» that thing? In which **order**?
+I'm convinced that knowing single actions doesn't bring anything to business
+workflows comprehension.
 
-#  All you need is an object!
+#  All you need is an object!(?)
 
 Unfortunately in many teams and scenarios **it's really hard to write an
-object**! Let's imagine: you're working with a team on a complex Rails project.
-The team sticks to the *rails way* 100%. Where you'll add your object? Will you
-open a discussion sustaining that `Orders::UserNotification` should be a *model*?
+object**! Let's imagine: you're working with a team on a Rails project.
+The team sticks to the *rails way*. Where you'll add your object? Should be a
+*model*?
 Do you have the time/position to propose to create a new subdirectory beneath
-`app/models`? Let's admit: in a standard scenario you're on a Rails app where
+`app/models`? Or a new top-level folder `app/something`?
+Let's admit: often you're on a Rails app where
 the only business layer are models (and Rails models are a mixture - no negative
-suppositions - of entities and business logic).
+suppositions - of entities and business logic) and the team has no other
+internal conventions about additional layering.
 
-Service objects have gained enough popularity to justify a new 3rd party
-requiring a new folder beneath `app/`; and moreover it's not a
-design/organization decision that weighs on your shoulders.
+Service objects have gained enough popularity in the community to justify a new
+3rd party requiring a new folder beneath `app/`; and moreover it's not a
+design/organization decision that weighs on your shoulders: that's the gem
+convention.
 
 My take is:
 
 - gems like collectiveidea/interactor bring few small advantages to the project
-- maybe the cost of the dependency is not worth
+- maybe the cost of the dependency is not worth?
 - developers in a Rails project often feel afraid of autonomously structuring
   the domain layer: the feeling of abandoning the *rails way*, breaking the
   conventional structure, could be overwhelming and inhibiting
-- here come the cost worth to pay: the 3rd party you use is making choices that
+- maybe here comes a return from the cost: the 3rd party is making choices that
   you and your team won't have to take. It's faster to convey on the use of a
   gem than on the addition of a custom folder beneath `app/`!
 
-Do we need new tools because they're the right ones to solve our problems or
+Do we need the tool because its the right one to solve our problems or
 we're just in search of an already consolidated convention? It's engineering or
 instinct?
 
-Back on practical things, we have installed interactor and now we have to deal
+Back on practical things, we have installed *interactor* and now we have to deal
 with *new, strange* objects somewhat resembling functions...
 
 # Objects resembling functions
 
-## Enforcing the single-purpose
+A "stranger" pattern emerges:
+
+```ruby
+class AuthenticateUser
+  include Interactor
+
+  def call
+    if user = User.authenticate(context.email, context.password)
+      context.user = user
+      context.token = user.secret_token
+    else
+      context.fail!(message: "authenticate_user.failure")
+    end
+  end
+end
+```
+
+This class describes an object, but the object has just one method, somehow
+accessing some data - even if it's not clear from where they come since `call`
+takes no parameters.
+
+The class also has an "incorrect" name: it's not a noun. Its name is composed
+of a verb and an object complement.
+
+Why?
+
+**Enforcing the single-purpose**
 
 We want to implement a single-purpose object, but once our kiddo is in the wild
-it will be extended. That's the nature of an object, but we want to preserve it.
+it will be extended. That's the nature of an object.
 
-It's too easy to extend an object with new behavior:
+It's super-easy to extend an object with new behavior:
 
 ```ruby
 class Orders::UserNotification
@@ -127,7 +158,7 @@ class Orders::UserNotification
 end
 ```
 
-We'll close its interface making it a "callable" thing
+*Interactor* "closes" the interface making it a "callable" thing
 
 ```ruby
 class Orders::UserNotification
@@ -139,11 +170,12 @@ class Orders::UserNotification
 end
 ```
 
-## Enforcing _being an action_
+**Enforcing _being an action_**
 
-Since we're mimicking a function, we feel the urgency to express it as a
-function, thus naming it with a verb or any other grammar construct representing
-the *doing only one thing*.
+The object does one thing and it's not to be instantiated.
+This why there's the urgency to name it as a
+function, thus with a verb or any other grammar construct representing
+the *doing a thing*.
 
 ```ruby
 class Orders::NotifyShipment
@@ -154,34 +186,38 @@ end
 Now it's hard to think to add new public methods to this object: we narrowed
 its scope too much.
 
-Let me repeat myself, this *verb* alone does not represent business logic. This
-is just a backend operation. This thing alone doesn't tell us anything about
-what the system does in business terms.
+**Externalize the state**
 
-With the interactor gem this would look like
+The object must not be instantiated, as noted before.
+The only public method can be called on
+the class directly and it doesn't take any arguments.
 
 ```ruby
-# interactors/notify_shipment.rb
-class NotifyShipment
+class Orders::NotifyShipment
   include Interactor
 
-  def call(order, user) = # ...
+  def call = FooMailer.deliver_later(user: context.user, order: context.order)
 end
 ```
 
-At least we have a conventional place where to put something that our system
-does...
+We see this ghost *thing* called `context` appearing in `call`'s body like
+magic and it brings the data we need to operate on. This way we're led to
+not rely on object's internal state, but on this good ghost. Just reading the
+snippet you are moreover in doubt to be working at class or at instance level.
+But the point is that you have not to think about it. Your write procedures
+relying on an externalized data "repository".
 
-## Accomplishments
+## Accomplishments so far
 
-The decision to use service objects in a project brings some accomplishments.
+The decision to use *interactor* in a project brings some accomplishments.
 This can be evident introducing them in a pre-existent project where tons of
-logic were liquefied in a myriad of unreachable corners of the code base
+logic were liquefied in a myriad of unreachable code base corners
 without any type of organization nor concept materialization.
 
 - we've written a piece of logic in a conventional place
 - it is discoverable
 - it is callable
+- it is small and readable
 - we named the thing
 - we named the thing
 - we named the thing (ok ok, got it)
@@ -189,7 +225,7 @@ without any type of organization nor concept materialization.
 - we start to understand if this logic is a sub-unit of something greater
 - writing the logic we understand if it's a logic that could fail.
 
-# Organising sparse actions
+# Organizing sparse actions
 
 Alias: making sense of the chaos you created.
 
@@ -197,21 +233,22 @@ Unless you're just offloading single-purpose micro-units of logic from a
 controller, you'll find that single interactors will be useful when composed
 together.
 
+Being small and single-purpose they'll need soon to start collaborating each
+other and you soon start to have a lot of these objects.
+
 Let's introduce organizers: the device demonstrating you understood nothing
 about the system or about business workflows just by knowing all the sparse
-actions the system can play.
+actions the system can play. Sending an email does
+not represent a business workflow in your system. It's just a backend
+operation. It's just the tail of the cat. And now you need to describe the cat.
 
-You tried so hard to make those things single-purpose, but sending an email does
-not represent a business workflow in your system. It's just the tail of the cat.
-And now you need to describe the cat.
-
-When you compose (or organize or orchestrate) single-purpose-standalone-micro-unit
+When you compose (or organize or orchestrate) single-purpose-standalone-units
 of logic you face new challenges:
 
-- naming the resulting thing as a whole
+- naming the resulting thing (the workflow) as a whole
 - using a Local DTO; *the whole* needs a state shared among sub-units.
 
-This Local DTO is often called *the context*.
+This Local DTO is called *the context*.
 
 > [!NOTE]
 >
@@ -291,8 +328,12 @@ outcome.success? #=> false
 
 ```
 
-You notice that in order to know what's in the context while executing `Walk`
-you have to read all the previous interactors' body and deduce it.
+`context` is fundamental, but it's not really clear what it is and how it
+is mutated.
+
+In order to know what's in the context while executing `Walk`
+you have to read all the previous interactors' body plus initial arguments
+passed to `LetTheCatLive.call` and kind of deduce it.
 
 Other libraries have more declarative configuration:
 
@@ -335,11 +376,11 @@ You notice that `Action`'s class methods `.expects` and `.promises` gives a lot
 of understanding about what the single interactor needs in the context and how
 it will mutate the context. It's of great help (<3) but
 
-- context is still an hash: `context[:prize] = '...'` is a mutation out of any control
-- you still don't have information about types: is `context[:prize]` a float? A string?
-- the context nonetheless accumulates data while executing all organizer's
-  actions: it's still a *Local DTO*. Its shape morphing from the start to the
-  end of the chain is unpredictable.
+- context is still an hash: not only mutations could happen in any interactor
+  and multiple time on the same datum, but new keys will be created on the
+  context. You never know exactly the shape of the context in a specific step
+  unless it's the first one.
+- you don't have information about types: is `context[:prize]` a float? A string?
 
 Other libraries have different design that (partially?) solve this fact by
 explicitly declaring attributes, their types and not using a *Local DTO* as
@@ -374,7 +415,7 @@ class AddThreeAndDivideByTwo < ActiveInteraction::Base
   integer :x
 
   def execute
-    dividend = compose(AddThree, x: x)
+    dividend = compose(AddThree, x:)
     compose(Divide, dividend:, divider: 2)
   end
 end
@@ -405,9 +446,9 @@ because we cannot add methods on **context**
 
 When you read the organizer you don't know what happens inside interactors, when
 you read an interactor you don't know how if it is placed in an organizer:
-to understand what's going on you'll read back and forth from organizer and the
+to understand what's going on you read back and forth from organizer and the
 various interactors until
-you memoize - in your brain - the state and the interactions **as a whole**.
+you memoize the state and the interactions **as a whole**.
 Keep in mind that usually interactors
 and organizers lay in different folders and each in a different file.
 
@@ -437,8 +478,7 @@ whole operation is a success or a failure, it eventually reports failure error
 or returns all the data it contains to the caller. But it exists in a greyed
 dimension: it's both implicit and unstructured.
 
-
-![](images/context_is_hard_to_track.excalidraw.svg)
+![](images/context_and_interactors.png)
 
 Context is THE object: has state and it would like to have behavior and respond
 to messages.
@@ -462,6 +502,8 @@ needs, shapes reflecting business workflows, language, needs.
 A fact stands out: you're designing a cat. Your reader won't give a holy fuck to
 discover your system is able to let something _to eat_; the interesting and
 describing part is that your system has a cat eating food.
+
+Let's try to achieve this using a PORO.
 
 
 ```ruby
@@ -543,17 +585,15 @@ outcome = Cat.LetItLive(food: "fish")
 outcome #=> #<Cat:0x00000001012b6748 @context=#<struct Cat::Context eaten=["fish"], walked=true>>
 ```
 
-It would be interesting to discuss about the differences between the
-interactor/organizer approach (which is a procedural approach glued by a
-**Local DTO**) and this trivial OO approach. But it's an expensive matter. Let's
-shortcut it on some spotlights.
+It would be interesting to discuss about all the differences between the
+interactor/organizer approach and this trivial OO approach. But it's an expensive matter. Let's shortcut on some spotlights.
 
 ## Controlling the context
 
 In the example the context is a simple `Struct`. This brings two important
 things to the table:
 
-1. you can implement behaviour
+1. you can implement behavior
 2. you must declare all the attributes in advance
 
 The second one could be a burden, but it's also quite logical: while
@@ -566,7 +606,7 @@ and a good practice to *shape*
 
 > [!important]
 >
-> For sure you already watched this https://www.youtube.com/watch?v=R0oxlyVUpDw
+> Be sure to watch this https://www.youtube.com/watch?v=R0oxlyVUpDw even if OT
 
 Worth noting that in the widely used collectiveidea/interactor gem the context
 is an `OpenStruct`: leave aside its use is discouraged by ruby's doc itself, but
@@ -597,6 +637,14 @@ A lot of answers and patterns are out there, but you get it's not that trivial.
 Quick and dumb solutions brings to code repetition or offloading responsibility
 and/or knowledge on the caller.
 
+**This is where *interactor*'s approach wins**! Using organized interactors
+any step is able to short circuit the whole workflow reporting the error to
+the caller as a simple return value. This is **the point** about the pattern
+IMO. Not code organization, not an object per action, not readability nor
+easy of discovering. To me the whole point is: it's easy to fail, stop the
+workflow and return from any point without any form of complex collaboration
+with the call site.
+
 ## Validations
 
 This approach does not add anything to validation-related problems.
@@ -608,10 +656,10 @@ Conclusions on the PORO approach:
 - easy and explicit
 - self-contained and self-documenting business workflow
 - really hard to use it outside of a golden happy path
-- thus **insufficient**
+- thus **insufficient** in a lot of real life use cases
 
-Let's try to implement something sufficient (spoiler: we won't get better than
-sufficient here!)
+Let's try to implement something sufficient taking the good from both the PORO
+and the *interactor* implementations.
 
 # A more functional cat ==^.^==
 
@@ -622,7 +670,8 @@ But it's so dumb that maybe you
 could just copy-paste something into your `lib/` folder 😜. We'll take a look in
 a future paragraph to well packaged, production ready (or production grade)
 solutions. Just keep in mind this "gem" is just a POC useful to discuss about
-the matter having some working and tested examples.
+the matter having some working and tested examples: use it only to support
+your studies.
 
 Lastly, as a POC, this gem illustrates alternative patterns; this is not what
 usually a gem wants to do. But the different flavours will let you explore pros
@@ -690,6 +739,10 @@ p outcome
   rubocop is complaining about class length: we're ok. This means readability
   and - a nuance of - cohesion (not in the OO design sense, but ...)
 
+> [!NOTE]
+> `.let_it_live` is a class method, but it's not a requirement. Put it where
+> it best fits your needs
+
 - yes, you don't have "dot accessors" methods on the context like in
   *interactor*, but we're not using `OpenStruct` at least
 
@@ -711,7 +764,7 @@ p outcome
 - being this custom code you'll have to choose where to put it (neither this POC
   requires or assumes any specific location)
 
-- given previous "dots" I'd say the shape and functionality is almost the same
+- given previous "dots" I'd say the mood and interface are almost the same
   as in the original *interactor*
 
 ## Controlling the context
@@ -782,9 +835,10 @@ parameter to define methods in the created class.
 > `extend` it inside the block.
 
 The created `Struct` will automatically inherit `Shy::Interactor::ActsAsContext`
-module needed to make the object correctly work as context using the gem.
+module needed to make the object correctly work as context.
 
-Using this object as context brings some news:
+Using this object as context brings some news - already seen in the previous
+PORO implementation:
 
 - you're forced to define, thus project in advance, the whole status that will
   be used and consumed by the actions. This is an effort when starting but you
@@ -793,7 +847,7 @@ Using this object as context brings some news:
   business workflow does is easier and faster.
 - you can - but are not forced to - use the dot notation to access data, since
   `Struct`s naturally have reader and writer methods.
-- defining methods directly in the context
+- defining methods directly on the context
 
 > ![TIP]
 > For fun and science, you may want to try our special refinement:
@@ -980,6 +1034,7 @@ A railway interactor can only return one type of object: a `Result`.
 concrete return values from your interactors.
 
 `Success` object wraps the *real* value
+
 ```ruby
 res = Success(1)
 res.resolve #=> 1
@@ -994,10 +1049,15 @@ res.message #=> "Error"
 
 Both respond to `#failure?` and `#success?`
 
-On the happy path, in order to have a lighter code shape and lower the
-cognitive load while reading and writing the code, you don't need to explicitly
-return a `Success(["something])`: any return the `call` has, it will be wrapped
-into a `Success` if it isn't already.
+In order to have a lighter code shape and lower the
+cognitive load while reading and writing the code, the gem does a little bit
+of magic for you:
+
+1. you don't need to explicitly return a `Success(["something])`: any return
+   the `call` has, it's wrapped into a `Success` if it isn't already and unless
+   it's a `Failure`
+2. the result received as argument by the `call` method is already `resolve`d
+   so that you can avoid to always `result = result.resolve` as first operation.
 
 When calling the pipeline
 
@@ -1007,6 +1067,10 @@ When calling the pipeline
 
 the initial input you give to che `#call` method will be automatically turned
 into a `Success` object.
+
+Resuming: as long as you're on the happy path you are free to ignore that
+input and output are monads; just return a single object and accept a single
+argument.
 
 Inside a `Shy::Interactor::Railway` interactor `#Success` and `#Failure` are
 *builder* methods defined on instance. Outside of an interactor you can build
@@ -1027,7 +1091,7 @@ As per the previous image: when an interactor returns a `Failure` the rest of
 the pipeline will switch on the *failure* and won't be executed. The `Failure`
 object will be finally returned to the caller.
 
-### Mixing custom lambdas/procs in the pipeline
+### Mixing custom procs in the pipeline
 
 It's easy, but you have to manually and always return `Success` or `Failure`.
 E.g.:
@@ -1048,9 +1112,8 @@ When using `Shy::Interactor::Railway` interactors the result could be anything.
 
 I'd advice to always use a `Hash`:
 
-- you always name your data
-- you can always use `contract` validation on `Hash` and `Struct` results (same
-  goes for context in `Shy::Interactor` interactors)
+- you always name your data - with keys
+- you can always use `contract` validation on `Hash` and `Struct` results
 
 You could prefer to use arrays for performance or scalar values for your
 reasons. `contract` method doesn't cover those cases, but you can use `validate`.
@@ -1061,9 +1124,24 @@ a `Success` or a `Failure` from it.
 ```ruby
 class FooInteractor
   include Shy::Interactor::Railway
-  include Shy::Intereactor::Contract::DryValidation
+  include Shy::Interactor::Contract::DryValidation
 
-  validate lambda do |result|
+  validate ->(result) { Types::Strict::String[result] }
+
+  def call(r) = ...
+end
+```
+
+or you can always implement manual validation if you don't need dry-validation
+on the specific interactor
+
+```ruby
+class RailwayInteractorWithManualValidation
+  include Shy::Interactor::Railway
+
+  def call(result); end
+
+  def validate(result)
     case result
     in [false, *]
       Failure("Party hard")
@@ -1073,8 +1151,6 @@ class FooInteractor
       Failure("Unknown error")
     end
   end
-
-  def call(r) = ...
 end
 ```
 
@@ -1082,10 +1158,16 @@ end
 
 - transactions within interactors? are you able to handle that?
   - maybe https://github.com/Envek/after_commit_everywhere for Rails?
+  - i do not advise to run side effects inside the pipeline. Once
+    the caller receives the result it should use it to trigger side effects.
+    E.g. use interactors to build an `Order` with an associated `User`, return
+    both the `Order` and the `User`, then use `ActiveRecord` to save/update them
+    in DB in a single transaction. Dealing with nested transactions and
+    rollbacks is hard and is harder to extend/modify.
 - is rollback essential?
   - is it achievable with ROP?
 - production grade and/or advanced and/or endorsed gems?
-
+- any article to read?
 
 ___
 
